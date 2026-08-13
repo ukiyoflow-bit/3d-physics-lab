@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHYSX // Spatial Physics Lab</title>
+<style>
+:root {
+--bg: #050507;
+--surface: #0a0b0e;
+--border: rgba(255, 255, 255, 0.08);
+--border-focus: rgba(255, 255, 255, 0.2);
+--text-primary: #ededef;
+--text-muted: #8a8f98;
+--accent: #f0f0f2;
+}
+
+• { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(--bg);
+color: var(--text-primary);
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+overflow-x: hidden;
+-webkit-font-smoothing: antialiased;
+}
+
+/* Canvas background for the 3D prism */
+#webgl-container {
+position: fixed;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+z-index: 1;
+pointer-events: none;
+}
+
+/* Navigation bar */
+header {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 20px 6vw;
+z-index: 100;
+background: rgba(5, 5, 7, 0.75);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+border-bottom: 1px solid var(--border);
+}
+
+.logo {
+font-size: 13px;
+font-weight: 600;
+letter-spacing: 1.5px;
+color: var(--text-primary);
+text-decoration: none;
+font-family: monospace;
+}
+
+.nav-cta {
+font-size: 12px;
+font-weight: 500;
+font-family: monospace;
+background: var(--text-primary);
+color: var(--bg);
+padding: 8px 16px;
+border-radius: 4px;
+text-decoration: none;
+transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.nav-cta:hover {
+opacity: 0.9;
+transform: translateY(-1px);
+}
+
+/* Main Content Layout */
+.main-wrapper {
+position: relative;
+z-index: 2;
+width: 100%;
+}
+
+section {
+min-height: 100vh;
+padding: 140px 6vw 80px 6vw;
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+
+.hero-content {
+max-width: 640px;
+}
+
+.badge-tag {
+display: inline-block;
+font-family: monospace;
+font-size: 11px;
+color: var(--text-muted);
+border: 1px solid var(--border);
+padding: 4px 10px;
+border-radius: 20px;
+margin-bottom: 24px;
+background: rgba(255,255,255,0.02);
+}
+
+h1 {
+font-size: clamp(2.5rem, 5vw, 4.5rem);
+font-weight: 600;
+letter-spacing: -0.03em;
+line-height: 1.1;
+margin-bottom: 20px;
+color: #fff;
+}
+
+p.description {
+font-size: 1.05rem;
+color: var(--text-muted);
+line-height: 1.6;
+margin-bottom: 36px;
+max-width: 480px;
+}
+
+.btn-group {
+display: flex;
+gap: 16px;
+align-items: center;
+}
+
+.btn-primary {
+background: var(--text-primary);
+color: var(--bg);
+font-weight: 500;
+font-size: 13px;
+padding: 12px 24px;
+border-radius: 6px;
+text-decoration: none;
+transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+background: #fff;
+transform: translateY(-2px);
+}
+
+/* Sections & Cards */
+.section-title {
+font-size: 1.5rem;
+font-weight: 600;
+letter-spacing: -0.02em;
+margin-bottom: 32px;
+color: #fff;
+}
+
+.grid-2 {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+gap: 20px;
+}
+
+.grid-3 {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+gap: 20px;
+}
+
+.card {
+background: var(--surface);
+border: 1px solid var(--border);
+padding: 28px;
+border-radius: 8px;
+transition: border-color 0.2s ease;
+}
+
+.card:hover {
+border-color: var(--border-focus);
+}
+
+.card-meta {
+font-family: monospace;
+font-size: 11px;
+color: var(--text-muted);
+margin-bottom: 12px;
+display: block;
+}
+
+.card h3 {
+font-size: 1.15rem;
+font-weight: 600;
+margin-bottom: 10px;
+color: #fff;
+}
+
+.card p {
+font-size: 0.9rem;
+color: var(--text-muted);
+line-height: 1.5;
+}
+
+.status-tag {
+display: inline-block;
+font-family: monospace;
+font-size: 10px;
+padding: 3px 8px;
+border-radius: 4px;
+margin-top: 20px;
+font-weight: 500;
+}
+.live { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.wip { background: rgba(255, 255, 255, 0.03); color: var(--text-muted); }
+
+@media (max-width: 768px) {
+section { padding: 100px 6vw 60px 6vw; }
+}
+</style>
+</head>
+<body>
+
+<div id="webgl-container"></div>
+
+<header>
+<a href="#" class="logo">PHYSX // LAB</a>
+<a href="lab.html" class="nav-cta">LAUNCH LAB →</a>
+</header>
+
+<div class="main-wrapper">
+
+<!-- Hero Section -->
+<section>
+<div class="hero-content">
+<span class="badge-tag">SPATIAL PHYSICS ENGINE v1.0</span>
+<h1>Optics and Mechanics in 3D Space.</h1>
+<p class="description">An interactive laboratory environment designed to replace rigid 2D diagrams with real-time spatial calculations and ray tracing.</p>
+<div class="btn-group">
+<a href="lab.html" class="btn-primary">Open Simulator</a>
+</div>
+</div>
+</section>
+
+<!-- Value Proposition Section -->
+<section style="min-height: auto; padding-top: 40px; padding-bottom: 80px;">
+<h2 class="section-title">Designed for the Classroom</h2>
+<div class="grid-2">
+<div class="card">
+<span class="card-meta">01 // PRESENTATION MODE</span>
+<h3>Projector-Ready Visuals</h3>
+<p>Demonstrate light deviation, critical angles, and refraction variables live on smartboards without clumsy physical apparatus setups.</p>
+</div>
+<div class="card">
+<span class="card-meta">02 // STUDY MODE</span>
+<h3>Intuitive Comprehension</h3>
+<p>Direct manipulation of parameters helps build robust mental models for complex optics and mechanics curriculum requirements.</p>
+</div>
+</div>
+</section>
+
+<!-- Module Repository Section -->
+<section style="min-height: auto; padding-top: 40px; padding-bottom: 140px;">
+<h2 class="section-title">Active Modules</h2>
+<div class="grid-3">
+<div class="card" style="border-color: rgba(255,255,255,0.2);">
+<span class="card-meta">MODULE // 01</span>
+<h3>Ray Optics & Prisms</h3>
+<p>Real-time refraction tracking, apex angle tuning, and deviation calculations.</p>
+<span class="status-tag live">ACTIVE</span>
+</div>
+<div class="card">
+<span class="card-meta">MODULE // 02</span>
+<h3>Rotational Dynamics</h3>
+<p>Visualizing moment of inertia tensors and 3D torque vectors.</p>
+<span class="status-tag wip">IN DEVELOPMENT</span>
+</div>
+<div class="card">
+<span class="card-meta">MODULE // 03</span>
+<h3>Wave Interference</h3>
+<p>Spatial wave superposition and wavefront propagation mapping.</p>
+<span class="status-tag wip">PLANNED</span>
+</div>
+</div>
+</section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// Clean, professional Three.js setup with a real triangular glass prism
+const container = document.getElementById('webgl-container');
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x050507, 0.05);
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 0, 7);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+container.appendChild(renderer.domElement);
+
+// Minimal studio lighting setup
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+keyLight.position.set(5, 5, 4);
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0x88bbff, 1.0);
+fillLight.position.set(-5, -2, -2);
+scene.add(fillLight);
+
+// Real Triangular Prism Geometry (Cone with 3 radial segments creates a 3D triangular prism)
+const prismGeo = new THREE.ConeGeometry(1.4, 2.2, 3);
+const prismMat = new THREE.MeshPhysicalMaterial({
+color: 0xffffff,
+metalness: 0.1,
+roughness: 0.05,
+transmission: 0.92,
+ior: 1.5,
+thickness: 1.5,
+transparent: true,
+opacity: 0.9,
+side: THREE.DoubleSide
+});
+
+const prism = new THREE.Mesh(prismGeo, prismMat);
+// Rotate so it rests naturally on its triangular base or side, looking elegant
+prism.rotation.x = Math.PI / 6;
+prism.rotation.z = Math.PI / 12;
+scene.add(prism);
+
+// Subtle wireframe outline for technical precision aesthetic
+const wireGeo = new THREE.WireframeGeometry(prismGeo);
+const wireMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12 });
+const wireframe = new THREE.LineSegments(wireGeo, wireMat);
+prism.add(wireframe);
+
+// Interaction state variables
+let scrollProgress = 0;
+let targetScroll = 0;
+let mouseX = 0;
+let mouseY = 0;
+
+window.addEventListener('scroll', () => {
+const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+targetScroll = window.scrollY / (maxScroll || 1);
+});
+
+window.addEventListener('mousemove', (e) => {
+mouseX = (e.clientX / window.innerWidth - 0.5) * 0.3;
+mouseY = (e.clientY / window.innerHeight - 0.5) * 0.3;
+});
+
+window.addEventListener('resize', () => {
+camera.aspect = window.innerWidth / window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Animation loop
+const clock = new THREE.Clock();
+
+function animate() {
+requestAnimationFrame(animate);
+const time = clock.getElapsedTime();
+
+// Smooth scroll interpolation
+scrollProgress += (targetScroll - scrollProgress) * 0.08;
+
+// Natural, slow rotation blending with mouse parallax
+prism.rotation.y = time * 0.25 + (scrollProgress * Math.PI * 1.5) + mouseX;
+prism.rotation.x = (Math.PI / 6) + (scrollProgress * Math.PI * 0.4) + mouseY;
+
+// Gentle camera movement on scroll
+camera.position.y = -scrollProgress * 1.5;
+camera.lookAt(0, -scrollProgress * 1.5, 0);
+
+renderer.render(scene, camera);
+}
+
+animate();
+</script>
+</body>
+</html>
