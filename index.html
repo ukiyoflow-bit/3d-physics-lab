@@ -15,13 +15,17 @@
 --accent: #f0f0f2;
 }
 
-• { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+max-width: 100vw;
+overflow-x: hidden;
+}
 
 body {
 background: var(--bg);
 color: var(--text-primary);
 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-overflow-x: hidden;
 -webkit-font-smoothing: antialiased;
 }
 
@@ -228,7 +232,6 @@ section { padding: 100px 6vw 60px 6vw; }
 <a href="#" class="logo">PHYSX // LAB</a>
 <a href="lab.html" class="nav-cta">LAUNCH LAB →</a>
 </header>
-
 <div class="main-wrapper">
 
 <!-- Hero Section -->
@@ -291,7 +294,6 @@ section { padding: 100px 6vw 60px 6vw; }
 <script>
 // Clean, professional Three.js setup with a real triangular glass prism
 const container = document.getElementById('webgl-container');
-
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x050507, 0.05);
 
@@ -311,7 +313,7 @@ const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
 keyLight.position.set(5, 5, 4);
 scene.add(keyLight);
 
-const fillLight = new THREE.DirectionalLight(0x88bbff, 1.0);
+const fillLight = new THREE.DirectionalLight(0x00f0ff, 1.5);
 fillLight.position.set(-5, -2, -2);
 scene.add(fillLight);
 
@@ -385,6 +387,19 @@ renderer.render(scene, camera);
 }
 
 animate();
+
+// Smooth launch transition
+document.querySelectorAll('a[href="lab.html"]').forEach(button => {
+  button.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.body.style.transition = 'opacity 0.4s ease';
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+      window.location.href = 'lab.html';
+    }, 400);
+  });
+});
 </script>
 </body>
 </html>
+
