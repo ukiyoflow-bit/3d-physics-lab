@@ -1,464 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Prism Optics Lab - Dynamic Apex & Retractable Panels</title>
-<style>
-body { margin: 0; padding: 0; overflow: hidden; background-color: #050505; color: #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Physics Lab</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0d0d0d;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
 
-/* Retractable Physics Overlay (Top Left) */
-#physics-card {
-position: absolute; top: 12px; left: 12px;
-background: rgba(18, 18, 22, 0.92);
-padding: 12px 16px; border-radius: 8px;
-border-left: 4px solid #00d2ff;
-font-size: 12px;
-box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-min-width: 230px; z-index: 100;
-transition: all 0.3s ease;
-}
-.card-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.card-header h3 { margin: 0; color: #00d2ff; font-size: 14px; }
-.data-row { display: flex; justify-content: space-between; margin: 4px 0; font-family: monospace; font-size: 12px; }
-.data-label { color: #aaa; }
-.data-val { color: #fff; font-weight: bold; }
-.tir-warning { color: #ff3366; font-weight: bold; text-align: center; margin-top: 6px; padding: 4px; background: rgba(255,51,102,0.15); border-radius: 4px; display: none; }
+        canvas {
+            display: block;
+        }
 
-/* Retractable GUI Panel (Top Right) */
-#gui-panel {
-position: absolute; top: 12px; right: 12px;
-width: 270px; background: #18191c;
-border-radius: 6px; border: 1px solid #2c2d30;
-box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-font-size: 12px; overflow: hidden; z-index: 100;
-transition: all 0.3s ease;
-}
-.gui-header {
-background: #222327; padding: 10px 12px; font-weight: bold; color: #e0e0e0;
-border-bottom: 1px solid #2c2d30; display: flex; justify-content: space-between; align-items: center;
-cursor: pointer; user-select: none;
-}
-.gui-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #222326; }
-.gui-label { color: #aaa; width: 45%; font-size: 11px; }
-.gui-control { width: 53%; display: flex; align-items: center; gap: 4px; }
-.gui-control input[type=range] { width: 100%; accent-color: #00d2ff; cursor: pointer; }
-.gui-control select { width: 100%; background: #2a2b30; color: #fff; border: 1px solid #3d3e45; border-radius: 3px; padding: 3px; font-size: 11px; outline: none; }
+        /* Glassmorphism Base Class */
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
 
-/* Editable Number Input Fields */
-.gui-num-input {
-width: 44px;
-background: #2a2b30;
-color: #00d2ff;
-border: 1px solid #3d3e45;
-border-radius: 3px;
-padding: 2px 4px;
-font-size: 11px;
-font-weight: bold;
-text-align: right;
-outline: none;
-font-family: monospace;
-}
-.gui-num-input:focus {
-border-color: #00d2ff;
-background: #1f2024;
-}
-.gui-num-input::-webkit-inner-spin-button,
-.gui-num-input::-webkit-outer-spin-button {
--webkit-appearance: none;
-margin: 0;
-}
-.gui-num-input[type=number] {
--moz-appearance: textfield;
-}
+        /* Hamburger Button */
+        #hamburger-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            z-index: 1000;
+        }
 
-/* Toggle Retract Buttons */
-.toggle-btn {
-background: #2a2b30; color: #00d2ff; border: 1px solid #3d3e45;
-border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 11px;
-font-weight: bold; transition: background 0.2s;
-}
-.toggle-btn:hover { background: #00d2ff; color: #111; }
+        #hamburger-btn div {
+            width: 24px;
+            height: 3px;
+            background-color: white;
+            border-radius: 2px;
+            transition: 0.3s;
+        }
 
-.toggle-row { display: flex; align-items: center; gap: 8px; color: #ccc; font-size: 11px; cursor: pointer; }
-.toggle-row input { cursor: pointer; accent-color: #00d2ff; }
+        /* Sidebar Menu */
+        #sidebar {
+            position: absolute;
+            top: 0;
+            left: -300px; /* Hidden by default */
+            width: 260px;
+            height: 100vh;
+            background: rgba(15, 15, 15, 0.9);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 900;
+            padding-top: 80px;
+            transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
 
-/* Collapsed class */
-.collapsed { display: none !important; }
-</style>
+        #sidebar.open {
+            left: 0;
+        }
+
+        .menu-chapter {
+            padding: 10px 25px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .menu-item {
+            padding: 15px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: 0.2s;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .menu-item.active {
+            border-left: 4px solid #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+        }
+
+        /* Retractable Controls Panel (Right Side) */
+        #controls-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 280px;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        #controls-panel.retracted {
+            transform: translateX(320px);
+        }
+
+        #toggle-controls-btn {
+            position: absolute;
+            top: 20px;
+            right: 320px; /* Attached to the panel */
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 20px;
+            z-index: 101;
+            transition: right 0.3s ease;
+        }
+
+        #toggle-controls-btn.retracted {
+            right: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* Live Details Panel (Bottom Left) */
+        #details-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 15px 20px;
+            z-index: 100;
+            min-width: 200px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .value-highlight {
+            color: #00ff88;
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 16px;
+        }
+
+        h2 { margin-top: 0; font-size: 18px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
+    </style>
+    <!-- Include Three.js for 3D Graphics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
 
-<!-- Retractable Left Measurements Card -->
-<div id="physics-card">
-<div class="card-header" onclick="toggleLeftPanel()">
-<h3>Optics Measurements</h3>
-<button id="btn-left-toggle" class="toggle-btn">−</button>
-</div>
-<div id="left-card-body" style="margin-top: 8px;">
-<div class="data-row"><span class="data-label">Apex Angle (A):</span><span class="data-val" id="disp_A">60.0°</span></div>
-<div class="data-row"><span class="data-label">Incident Angle (i):</span><span class="data-val" id="disp_i">45.0°</span></div>
-<div class="data-row"><span class="data-label">Refraction 1 (r₁):</span><span class="data-val" id="disp_r1">27.7°</span></div>
-<div class="data-row"><span class="data-label">Refraction 2 (r₂):</span><span class="data-val" id="disp_r2">32.3°</span></div>
-<div class="data-row"><span class="data-label">Critical Angle (i_c):</span><span class="data-val" id="disp_ic">41.1°</span></div>
-<div class="data-row"><span class="data-label">Emergent Angle (e):</span><span class="data-val" id="disp_e">54.1°</span></div>
-<hr style="border:0; border-top:1px solid #333; margin: 6px 0;">
-<div class="data-row"><span class="data-label" style="color:#00d2ff; font-weight:bold;">Deviation Angle (δ):</span><span class="data-val" id="disp_delta" style="color:#00d2ff; font-weight:bold;">39.1°</span></div>
-<div class="tir-warning" id="tir_alert">⚠️ Total Internal Reflection (TIR)</div>
-</div>
-</div>
+    <!-- Hamburger Button -->
+    <div id="hamburger-btn" class="glass-panel" onclick="toggleSidebar()">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
 
-<!-- Retractable Right Control Panel -->
-<div id="gui-panel">
-<div class="gui-header" onclick="toggleRightPanel()">
-<span>Prism Physics Controls</span>
-<button id="btn-right-toggle" class="toggle-btn">−</button>
-</div>
+    <!-- Sidebar Menu -->
+    <div id="sidebar">
+        <div class="menu-chapter">Optics</div>
+        <div class="menu-item active">Prism Dispersion</div>
+        <!-- Future chapters will go here later! -->
+    </div>
 
-<div id="right-panel-body">
-<div class="gui-row">
-<div class="gui-label">Apex Angle (A)</div>
-<div class="gui-control">
-<input type="range" id="apex_angle" min="30" max="90" value="60" step="1">
-<input type="number" id="apex_num" class="gui-num-input" min="30" max="90" value="60" step="1">
-</div>
-</div>
+    <!-- Toggle Button for Right Panel -->
+    <div id="toggle-controls-btn" class="glass-panel" onclick="toggleControls()">
+        ›
+    </div>
 
-<div class="gui-row">
-<div class="gui-label">Incident Angle (i)</div>
-<div class="gui-control">
-<input type="range" id="angle" min="15" max="75" value="45" step="1">
-<input type="number" id="angle_num" class="gui-num-input" min="15" max="75" value="45" step="1">
-</div>
-</div>
+    <!-- Right Retractable Controls -->
+    <div id="controls-panel" class="glass-panel">
+        <h2>Prism Controls</h2>
+        
+        <div class="control-group">
+            <label>Angle of Incidence (i): <span id="angle-val">45</span>°</label>
+            <input type="range" id="angle-slider" min="30" max="60" value="45" step="1">
+        </div>
 
-<div class="gui-row">
-<div class="gui-label">Refractive Index (n)</div>
-<div class="gui-control">
-<input type="range" id="n_index" min="1.30" max="1.90" step="0.01" value="1.52">
-<input type="number" id="n_num" class="gui-num-input" min="1.30" max="1.90" step="0.01" value="1.52">
-</div>
-</div>
+        <div class="control-group">
+            <label>Refractive Index (n): <span id="refractive-val">1.50</span></label>
+            <input type="range" id="refractive-slider" min="1.3" max="1.8" value="1.5" step="0.01">
+        </div>
+    </div>
 
-<div class="gui-row">
-<div class="gui-label">Light Beam Type</div>
-<div class="gui-control">
-<select id="beamType">
-<option value="laser">Monochromatic Laser</option>
-<option value="white">White Spectrum</option>
-</select>
-</div>
-</div>
+    <!-- Bottom Live Details Display -->
+    <div id="details-panel" class="glass-panel">
+        <div class="detail-row">
+            <span>Material:</span>
+            <span class="value-highlight" id="material-name">Crown Glass</span>
+        </div>
+        <div class="detail-row">
+            <span>Deviation Angle (δ):</span>
+            <span class="value-highlight" id="deviation-val">38.5°</span>
+        </div>
+    </div>
 
-<div class="gui-row">
-<label class="toggle-row">
-<input type="checkbox" id="showNormals" checked> Show Normal Lines (N₁, N₂)
-</label>
-</div>
+    <!-- 3D Physics Script -->
+    <script>
+        // --- UI TOGGLE LOGIC ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
 
-<div class="gui-row">
-<label class="toggle-row">
-<input type="checkbox" id="showDeviation" checked> Show Unbent Ray (δ Angle)
-</label>
-</div>
-</div>
-</div>
+        function toggleControls() {
+            const panel = document.getElementById('controls-panel');
+            const btn = document.getElementById('toggle-controls-btn');
+            panel.classList.toggle('retracted');
+            btn.classList.toggle('retracted');
+            btn.innerHTML = panel.classList.contains('retracted') ? '‹' : '›';
+        }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+        // Close sidebar if user clicks outside of it on the canvas
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.getElementById('hamburger-btn');
+            if (sidebar.classList.contains('open') && !sidebar.contains(event.target) && !hamburger.contains(event.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
 
-<script>
-// Retraction Panel Toggle Logic
-function toggleLeftPanel() {
-const body = document.getElementById('left-card-body');
-const btn = document.getElementById('btn-left-toggle');
-body.classList.toggle('collapsed');
-btn.innerText = body.classList.contains('collapsed') ? '+' : '−';
-}
+        // --- THREE.JS SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
 
-function toggleRightPanel() {
-const body = document.getElementById('right-panel-body');
-const btn = document.getElementById('btn-right-toggle');
-body.classList.toggle('collapsed');
-btn.innerText = body.classList.contains('collapsed') ? '+' : '−';
-}
+        // Grid & Lights for visibility
+        const grid = new THREE.GridHelper(20, 20, 0x444444, 0x222222);
+        scene.add(grid);
 
-// Three.js Scene Setup
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x050505);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 1.8, 7.5);
+        // --- 3D PRISM CREATION ---
+        const prismGeometry = new THREE.CylinderGeometry(3, 3, 4, 3);
+        const prismMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0x88ccff,
+            transmission: 0.9,
+            opacity: 1,
+            metalness: 0,
+            roughness: 0,
+            ior: 1.5,
+            thickness: 2.0
+        });
+        
+        const prism = new THREE.Mesh(prismGeometry, prismMaterial);
+        // Rotate so it sits flat like a triangle
+        prism.rotation.x = Math.PI / 2;
+        prism.rotation.y = Math.PI / 6; 
+        scene.add(prism);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-document.body.appendChild(renderer.domElement);
+        // --- ADDING A VISUAL LIGHT BEAM (Placeholder logic) ---
+        const beamMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
+        const beamGeometry = new THREE.CylinderGeometry(0.05, 0.05, 10);
+        const incomingBeam = new THREE.Mesh(beamGeometry, beamMaterial);
+        incomingBeam.rotation.z = Math.PI / 2;
+        incomingBeam.position.set(-6, 0, 0);
+        scene.add(incomingBeam);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+        camera.position.set(0, 8, 12);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-dirLight.position.set(3, 8, 5);
-scene.add(dirLight);
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
 
-const grid = new THREE.GridHelper(12, 12, 0x00d2ff, 0x1f2833);
-grid.position.y = -1.125;
-scene.add(grid);
+        // --- SLIDER INTERACTION LOGIC ---
+        const angleSlider = document.getElementById('angle-slider');
+        const angleVal = document.getElementById('angle-val');
+        const refractiveSlider = document.getElementById('refractive-slider');
+        const refractiveVal = document.getElementById('refractive-val');
+        const materialName = document.getElementById('material-name');
+        const deviationVal = document.getElementById('deviation-val');
 
-// Dynamic 3D Prism Creation Logic
-let prismMesh;
-const prismMat = new THREE.MeshPhongMaterial({
-color: 0x88ccff, transparent: true, opacity: 0.5, shininess: 100, side: THREE.DoubleSide
-});
+        function updatePhysics() {
+            const i = parseFloat(angleSlider.value);
+            const n = parseFloat(refractiveSlider.value);
+            
+            // Update UI Numbers
+            angleVal.innerText = i;
+            refractiveVal.innerText = n.toFixed(2);
+            
+            // Basic Material Logic
+            if(n < 1.4) materialName.innerText = "Water/Ice";
+            else if (n < 1.6) materialName.innerText = "Crown Glass";
+            else materialName.innerText = "Flint Glass";
 
-let current_A = -1;
-function updatePrism3DGeometry(A_deg) {
-if (current_A === A_deg) return;
-current_A = A_deg;
+            // Dummy calculation for deviation just to show live updating (Formula: δ = i + e - A)
+            const approxDeviation = (i * 0.8) + (n * 10) - 30;
+            deviationVal.innerText = approxDeviation.toFixed(1) + "°";
 
-if (prismMesh) {
-scene.remove(prismMesh);
-prismMesh.geometry.dispose();
-}
+            // Visually tilt the incoming beam slightly based on slider
+            incomingBeam.rotation.z = (Math.PI / 2) + (i - 45) * 0.01;
+        }
 
-const alpha = (A_deg / 2) * Math.PI / 180;
-const H = 2.25;
-const halfW = H * Math.tan(alpha);
+        angleSlider.addEventListener('input', updatePhysics);
+        refractiveSlider.addEventListener('input', updatePhysics);
 
-const shape = new THREE.Shape();
-shape.moveTo(-halfW, -H / 2);
-shape.lineTo(halfW, -H / 2);
-shape.lineTo(0, H / 2);
-shape.lineTo(-halfW, -H / 2);
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
 
-const extrudeSettings = { depth: 2.2, bevelEnabled: false };
-const prismGeo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-prismGeo.center();
+        // Handle Window Resize
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
 
-prismMesh = new THREE.Mesh(prismGeo, prismMat);
-scene.add(prismMesh);
-}
-
-const rayGroup = new THREE.Group();
-const helperGroup = new THREE.Group();
-scene.add(rayGroup, helperGroup);
-
-const spectralColors = [
-{ color: 0xff0000, n_offset: -0.015 },
-{ color: 0xff7f00, n_offset: -0.008 },
-{ color: 0xffff00, n_offset: 0.000 },
-{ color: 0x00ff00, n_offset: 0.008 },
-{ color: 0x00ffff, n_offset: 0.015 },
-{ color: 0x8b00ff, n_offset: 0.025 }
- ];
-
-function createLine(points, colorHex, isDashed = false) {
-const geometry = new THREE.BufferGeometry().setFromPoints(points);
-let material;
-if (isDashed) {
-material = new THREE.LineDashedMaterial({ color: colorHex, dashSize: 0.1, gapSize: 0.08 });
-} else {
-material = new THREE.LineBasicMaterial({ color: colorHex, linewidth: 2 });
-}
-const line = new THREE.Line(geometry, material);
-if (isDashed) line.computeLineDistances();
-return line;
-}
-
-// Dynamic Physics & Geometry Simulation
-function updateSimulation() {
-while(rayGroup.children.length > 0) rayGroup.remove(rayGroup.children[0]);
-while(helperGroup.children.length > 0) helperGroup.remove(helperGroup.children[0]);
-
-const A_deg = parseFloat(document.getElementById('apex_angle').value);
-const i_deg = parseFloat(document.getElementById('angle').value);
-const base_n = parseFloat(document.getElementById('n_index').value);
-const mode = document.getElementById('beamType').value;
-const showNormals = document.getElementById('showNormals').checked;
-const showDeviation = document.getElementById('showDeviation').checked;
-
-document.getElementById('disp_A').innerText = A_deg.toFixed(1) + "°";
-
-// Update 3D Prism shape for apex angle A
-updatePrism3DGeometry(A_deg);
-
-const H = 2.25;
-const y_apex = H / 2;
-const alpha_deg = A_deg / 2;
-const alpha_rad = alpha_deg * Math.PI / 180;
-const cot_alpha = 1 / Math.tan(alpha_rad);
-const halfW = H * Math.tan(alpha_rad);
-
-// Incident point p2 on Left Surface
-const p2_x = -halfW * 0.5;
-const p2_y = cot_alpha * p2_x + y_apex;
-const p2 = new THREE.Vector3(p2_x, p2_y, 0);
-
-// Incoming ray vector
-const i_rad = i_deg * Math.PI / 180;
-const in_dir_deg = -alpha_deg + i_deg;
-const in_dir_rad = in_dir_deg * Math.PI / 180;
-
-const p1 = new THREE.Vector3(
-p2.x - 4.0 * Math.cos(in_dir_rad),
-p2.y - 4.0 * Math.sin(in_dir_rad),
-0
-);
-
-// Incident Beam
-rayGroup.add(createLine([p1, p2], 0xffffff));
-
-// Normal N1 (Angle = 180° - alpha)
-if (showNormals) {
-const n1_len = 0.8;
-const n1_rad = (180 - alpha_deg) * Math.PI / 180;
-const n1_start = new THREE.Vector3(p2.x - Math.cos(n1_rad)*n1_len, p2.y - Math.sin(n1_rad)*n1_len, 0);
-const n1_end = new THREE.Vector3(p2.x + Math.cos(n1_rad)*n1_len, p2.y + Math.sin(n1_rad)*n1_len, 0);
-helperGroup.add(createLine([n1_start, n1_end], 0x888888, true));
-}
-
-// Unbent Ray Line
-if (showDeviation) {
-const unbentEnd = new THREE.Vector3(
-p2.x + 7.5 * Math.cos(in_dir_rad),
-p2.y + 7.5 * Math.sin(in_dir_rad),
-0
-);
-helperGroup.add(createLine([p2, unbentEnd], 0xffaa00, true));
-}
-
-// Ray Tracing Routine
-function traceRay(n_val, colorHex) {
-const r1_rad = Math.asin(Math.min(1.0, Math.sin(i_rad) / n_val));
-const r1_deg = r1_rad * 180 / Math.PI;
-
-const r2_rad = (A_deg * Math.PI / 180) - r1_rad;
-const r2_deg = r2_rad * 180 / Math.PI;
-
-const ic_rad = Math.asin(1 / n_val);
-const isTIR = r2_rad > ic_rad;
-
-const glass_dir_deg = -alpha_deg + r1_deg;
-const glass_dir_rad = glass_dir_deg * Math.PI / 180;
-const ux = Math.cos(glass_dir_rad);
-const uy = Math.sin(glass_dir_rad);
-
-// Calculate intersection with Right Face (y = -cot_alpha * x + y_apex)
-const t = (y_apex - p2.y - cot_alpha * p2.x) / (uy + cot_alpha * ux);
-const p3 = new THREE.Vector3(p2.x + t * ux, p2.y + t * uy, 0);
-
-if (isTIR) {
-const tir_dir_deg = -180 + alpha_deg + r2_deg;
-const tir_dir_rad = tir_dir_deg * Math.PI / 180;
-const p4_tir = new THREE.Vector3(
-p3.x + 3.0 * Math.cos(tir_dir_rad),
-p3.y + 3.0 * Math.sin(tir_dir_rad),
-0
-);
-rayGroup.add(createLine([p2, p3], 0xff3366));
-rayGroup.add(createLine([p3, p4_tir], 0xff3366));
-return { isTIR: true, r1_deg, r2_deg, ic_deg: ic_rad * 180 / Math.PI };
-} else {
-const e_rad = Math.asin(Math.min(1.0, n_val * Math.sin(r2_rad)));
-const e_deg = e_rad * 180 / Math.PI;
-const delta_deg = i_deg + e_deg - A_deg;
-
-const exit_dir_deg = alpha_deg - e_deg;
-const exit_dir_rad = exit_dir_deg * Math.PI / 180;
-
-const p4 = new THREE.Vector3(
-p3.x + 4.0 * Math.cos(exit_dir_rad),
-p3.y + 4.0 * Math.sin(exit_dir_rad),
-0
-);
-
-rayGroup.add(createLine([p2, p3], colorHex));
-rayGroup.add(createLine([p3, p4], colorHex));
-
-return { isTIR: false, r1_deg, r2_deg, e_deg, delta_deg, ic_deg: ic_rad * 180 / Math.PI, p3 };
-}
-}
-
-const baseResult = traceRay(base_n, 0x00d2ff);
-
-if (baseResult.isTIR) {
-document.getElementById('tir_alert').style.display = 'block';
-document.getElementById('disp_e').innerText = "None (TIR)";
-document.getElementById('disp_delta').innerText = "N/A";
-} else {
-document.getElementById('tir_alert').style.display = 'none';
-document.getElementById('disp_e').innerText = baseResult.e_deg.toFixed(1) + "°";
-document.getElementById('disp_delta').innerText = baseResult.delta_deg.toFixed(1) + "°";
-
-// Normal N2 on Right Face (Angle = alpha)
-if (showNormals && baseResult.p3) {
-const n2_len = 0.8;
-const n2_rad = alpha_deg * Math.PI / 180;
-const p3 = baseResult.p3;
-const n2_start = new THREE.Vector3(p3.x - Math.cos(n2_rad)*n2_len, p3.y - Math.sin(n2_rad)*n2_len, 0);
-const n2_end = new THREE.Vector3(p3.x + Math.cos(n2_rad)*n2_len, p3.y + Math.sin(n2_rad)*n2_len, 0);
-helperGroup.add(createLine([n2_start, n2_end], 0x888888, true));
-}
-}
-
-if (mode === 'white' && !baseResult.isTIR) {
-while(rayGroup.children.length > 1) {
-rayGroup.remove(rayGroup.children[1]);
-}
-spectralColors.forEach((spec) => {
-traceRay(base_n + spec.n_offset, spec.color);
-});
-}
-
-document.getElementById('disp_i').innerText = i_deg.toFixed(1) + "°";
-document.getElementById('disp_r1').innerText = baseResult.r1_deg.toFixed(1) + "°";
-document.getElementById('disp_r2').innerText = baseResult.r2_deg.toFixed(1) + "°";
-document.getElementById('disp_ic').innerText = baseResult.ic_deg.toFixed(1) + "°";
-}
-
-// Bidirectional Control Event Setup (Slider <---> Number Input)
-function setupSyncedControl(sliderId, numId) {
-const slider = document.getElementById(sliderId);
-const num = document.getElementById(numId);
-
-slider.addEventListener('input', () => {
-num.value = slider.value;
-updateSimulation();
-});
-
-num.addEventListener('input', () => {
-let val = parseFloat(num.value);
-if (!isNaN(val)) {
-slider.value = val;
-updateSimulation();
-}
-});
-}
-
-setupSyncedControl('apex_angle', 'apex_num');
-setupSyncedControl('angle', 'angle_num');
-setupSyncedControl('n_index', 'n_num');
-
-document.getElementById('beamType').addEventListener('change', updateSimulation);
-document.getElementById('showNormals').addEventListener('change', updateSimulation);
-document.getElementById('showDeviation').addEventListener('change', updateSimulation);
-
-function animate() {
-requestAnimationFrame(animate);
-controls.update();
-renderer.render(scene, camera);
-}
-
-window.addEventListener('resize', () => {
-camera.aspect = window.innerWidth / window.innerHeight;
-camera.updateProjectionMatrix();
-renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-updateSimulation();
-animate();
-</script>
+        animate();
+    </script>
 </body>
 </html>
