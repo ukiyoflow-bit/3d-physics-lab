@@ -7,9 +7,31 @@
 <style>
 body { margin: 0; padding: 0; overflow: hidden; background-color: #050505; color: #eee; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
+/* Hamburger Menu & Slide-out Sidebar */
+#hamburger-btn {
+position: absolute; top: 12px; left: 12px; width: 36px; height: 36px;
+background: #18191c; border: 1px solid #2c2d30; border-radius: 6px;
+display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px;
+cursor: pointer; z-index: 101; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+transition: all 0.2s ease;
+}
+#hamburger-btn:hover { background: #222327; border-color: #00d2ff; }
+#hamburger-btn div { width: 18px; height: 2px; background-color: #00d2ff; border-radius: 2px; }
+
+#sidebar-menu {
+position: absolute; top: 0; left: -260px; width: 240px; height: 100vh;
+background: rgba(18, 19, 22, 0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+border-right: 1px solid #2c2d30; z-index: 999; padding-top: 60px;
+box-shadow: 8px 0 24px rgba(0,0,0,0.7); transition: left 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+#sidebar-menu.open { left: 0; }
+
+.menu-chapter-title { padding: 16px 16px 8px 16px; font-size: 11px; color: #888; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+.menu-item-link { padding: 10px 16px; font-size: 13px; color: #00d2ff; background: rgba(0, 210, 255, 0.12); border-left: 3px solid #00d2ff; font-weight: 600; }
+
 /* Retractable Physics Overlay (Top Left) */
 #physics-card {
-position: absolute; top: 12px; left: 12px;
+position: absolute; top: 12px; left: 56px;
 background: rgba(18, 18, 22, 0.92);
 padding: 12px 16px; border-radius: 8px;
 border-left: 4px solid #00d2ff;
@@ -89,6 +111,17 @@ font-weight: bold; transition: background 0.2s;
 </head>
 <body>
 
+<!-- Hamburger Button -->
+<div id="hamburger-btn" onclick="toggleSidebar()">
+<div></div><div></div><div></div>
+</div>
+
+<!-- Slide-out Sidebar Drawer -->
+<div id="sidebar-menu">
+<div class="menu-chapter-title">Optics</div>
+<div class="menu-item-link">Prism Dispersion</div>
+</div>
+
 <!-- Retractable Left Measurements Card -->
 <div id="physics-card">
 <div class="card-header" onclick="toggleLeftPanel()">
@@ -119,16 +152,16 @@ font-weight: bold; transition: background 0.2s;
 <div class="gui-row">
 <div class="gui-label">Apex Angle (A)</div>
 <div class="gui-control">
-<input type="range" id="apex_angle" min="30" max="90" value="60" step="1">
-<input type="number" id="apex_num" class="gui-num-input" min="30" max="90" value="60" step="1">
+<input type="range" id="apex_angle" min="1" max="100" value="60" step="1">
+<input type="number" id="apex_num" class="gui-num-input" min="1" max="100" value="60" step="1">
 </div>
 </div>
 
 <div class="gui-row">
 <div class="gui-label">Incident Angle (i)</div>
 <div class="gui-control">
-<input type="range" id="angle" min="15" max="75" value="45" step="1">
-<input type="number" id="angle_num" class="gui-num-input" min="15" max="75" value="45" step="1">
+<input type="range" id="angle" min="1" max="90" value="45" step="1">
+<input type="number" id="angle_num" class="gui-num-input" min="1" max="90" value="45" step="1">
 </div>
 </div>
 
@@ -168,6 +201,21 @@ font-weight: bold; transition: background 0.2s;
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
+// Sidebar Toggle Logic
+function toggleSidebar() {
+const sidebar = document.getElementById('sidebar-menu');
+sidebar.classList.toggle('open');
+}
+
+// Close sidebar when clicking outside on the canvas
+document.addEventListener('click', function(e) {
+const sidebar = document.getElementById('sidebar-menu');
+const btn = document.getElementById('hamburger-btn');
+if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !btn.contains(e.target)) {
+sidebar.classList.remove('open');
+}
+});
+
 // Retraction Panel Toggle Logic
 function toggleLeftPanel() {
 const body = document.getElementById('left-card-body');
