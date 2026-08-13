@@ -18,6 +18,17 @@ transition: all 0.2s ease;
 #hamburger-btn:hover { background: #222327; border-color: #00d2ff; }
 #hamburger-btn div { width: 18px; height: 2px; background-color: #00d2ff; border-radius: 2px; }
 
+/* Backdrop Overlay for closing sidebar on outside click */
+#sidebar-overlay {
+position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(2px);
+z-index: 98; opacity: 0; pointer-events: none;
+transition: opacity 0.3s ease;
+}
+#sidebar-overlay.active {
+opacity: 1; pointer-events: auto;
+}
+
 #sidebar-menu {
 position: absolute; top: 0; left: -260px; width: 240px; height: 100vh;
 background: rgba(18, 19, 22, 0.96); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -116,6 +127,9 @@ font-weight: bold; transition: background 0.2s;
 <div></div><div></div><div></div>
 </div>
 
+<!-- Backdrop Overlay (Closes drawer on tap/click outside) -->
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
 <!-- Slide-out Sidebar Drawer -->
 <div id="sidebar-menu">
 <div class="menu-chapter-title">Optics</div>
@@ -201,20 +215,13 @@ font-weight: bold; transition: background 0.2s;
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-// Sidebar Toggle Logic
+// Sidebar Toggle Logic with Backdrop Overlay
 function toggleSidebar() {
 const sidebar = document.getElementById('sidebar-menu');
+const overlay = document.getElementById('sidebar-overlay');
 sidebar.classList.toggle('open');
+overlay.classList.toggle('active');
 }
-
-// Close sidebar when clicking outside on the canvas
-document.addEventListener('click', function(e) {
-const sidebar = document.getElementById('sidebar-menu');
-const btn = document.getElementById('hamburger-btn');
-if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !btn.contains(e.target)) {
-sidebar.classList.remove('open');
-}
-});
 
 // Retraction Panel Toggle Logic
 function toggleLeftPanel() {
